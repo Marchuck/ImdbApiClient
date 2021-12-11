@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="imdb__movie_title">Movie title…</string>
+
+    <string name="imdb__something_went_wrong">Oops! Something went wrong 🤭</string>
+    <string name="imdb__search_no_results">Aw snap! No matching results 🤷</string>
+    <string name="imdb__watch_trailer">Watch trailer</string>
+
+    <string name="imdb__movie_hours_minutes_placeholder">%1$d h %2$d min</string>
+    <string name="imdb__movie_hours_placeholder">%1$d h</string>
+    <string name="imdb__movie_minutes_placeholder">%1$d min</string>
+
+</resources>

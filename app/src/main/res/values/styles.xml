@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Imdb.Text" parent="Widget.AppCompat.TextView">
+        <item name="android:lineSpacingExtra">2dp</item>
+        <!--        <item name="android:fontFamily">@font/proxima_nova</item>-->
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">15dp</item>
+    </style>
+
+    <style name="Imdb.Text.Small">
+        <item name="android:textSize">12dp</item>
+    </style>
+
+    <style name="Imdb.Text.Bold">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Imdb.Text.Header">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Imdb.Text.Header.Title">
+        <item name="android:textSize">18dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+</resources>

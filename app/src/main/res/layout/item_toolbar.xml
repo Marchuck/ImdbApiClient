@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:background="?attr/colorPrimary"
+    android:orientation="horizontal"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <ImageView
+        android:id="@+id/button_back"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="16dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_arrow_left"
+        app:tint="@color/white"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/title"
+        style="@style/Imdb.Text.Header.Title"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="start|center_vertical"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/white"
+        tools:text="Title" />
+
+    <ImageView
+        android:id="@+id/action_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="16dp"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_settings"
+        app:tint="@color/white" />
+</LinearLayout>
