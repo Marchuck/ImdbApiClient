@@ -5,8 +5,16 @@ import kotlinx.coroutines.flow.*
 import pl.marchuck.imdbapiclient.imdb.ImdbClient
 import pl.marchuck.imdbapiclient.imdb.SearchResult
 import pl.marchuck.imdbapiclient.imdb.SearchResultType
+import pl.marchuck.imdbapiclient.ui.list.interactor.SearchMoviesInteractor.Companion.DEBOUNCE_MILLIS
+import pl.marchuck.imdbapiclient.ui.list.interactor.SearchMoviesInteractor.Companion.MIN_QUERY_LENGTH
 
 interface SearchMoviesInteractor {
+
+    companion object {
+        const val MIN_QUERY_LENGTH = 3
+        const val DEBOUNCE_MILLIS = 300L
+    }
+
     fun setQuery(newQuery: String)
 
     fun searchChanges(): Flow<List<SearchResult>>
@@ -15,11 +23,6 @@ interface SearchMoviesInteractor {
 class SearchMoviesInteractorImpl(
     private val client: ImdbClient
 ) : SearchMoviesInteractor {
-
-    companion object {
-        const val MIN_QUERY_LENGTH = 3
-        const val DEBOUNCE_MILLIS = 300L
-    }
 
     private val query = MutableStateFlow("")
 
@@ -38,7 +41,7 @@ class SearchMoviesInteractorImpl(
             .filter { it.isNotBlank() }
             .debounce(DEBOUNCE_MILLIS)
             .mapLatest { query ->
-                client.search(SearchResultType.Movie, query).results
+                client.search(SearchResultType.Movie, query).results.orEmpty()
             }
     }
 }

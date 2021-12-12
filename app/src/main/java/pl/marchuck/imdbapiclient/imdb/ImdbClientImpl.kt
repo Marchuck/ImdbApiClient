@@ -5,6 +5,7 @@ import com.chuckerteam.chucker.api.ChuckerInterceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.lang.Exception
 
 
 interface ImdbClient {
@@ -39,18 +40,30 @@ class ImdbClientImpl constructor(
     }
 
     override suspend fun search(type: SearchResultType, query: String): SearchResponse {
-        return api.search(type.key, config.apiKey, query)
+        val response = api.search(type.key, config.apiKey, query)
+        if (response.errorMessage.orEmpty().contains("Maximum usage")) {
+            throw KnownIssues.ApiLimitException
+        }
+        return response
     }
 
     override suspend fun getMovieDetail(id: String): MovieResponse {
-        return api.movieDetail(
+        val response = api.movieDetail(
             config.apiKey,
             id,
             options = "FullActor,FullCast,Images,Trailer,Ratings"
         )
+        if (response.errorMessage.orEmpty().contains("Maximum usage")) {
+            throw KnownIssues.ApiLimitException
+        }
+        return response
     }
 
     override suspend fun getImages(id: String): ImagesResponse {
         return api.images(config.apiKey, id)
     }
+}
+
+sealed class KnownIssues {
+    object ApiLimitException : Exception()
 }

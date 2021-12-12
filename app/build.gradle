@@ -3,6 +3,10 @@ plugins {
     id 'kotlin-android'
 }
 
+def localPropertiesFile = rootProject.file("local.properties")
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(localPropertiesFile))
+
 android {
     compileSdk 31
 
@@ -17,7 +21,15 @@ android {
     }
 
     buildTypes {
+
+        debug {
+            buildConfigField "String", "IMDB_API_KEY", localProperties['imdbApiKey']
+
+        }
+
         release {
+            buildConfigField "String", "IMDB_API_KEY", localProperties['imdbApiKey']
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -49,6 +61,9 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.0"
 
     implementation "com.jakewharton.timber:timber:4.7.1"
+
+    def koin_version = "3.1.4"
+    implementation "io.insert-koin:koin-android:$koin_version"
 
     debugImplementation "com.github.chuckerteam.chucker:library:3.5.2"
     releaseImplementation "com.github.chuckerteam.chucker:library-no-op:3.5.2"

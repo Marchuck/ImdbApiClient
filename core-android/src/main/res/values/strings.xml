@@ -4,6 +4,7 @@
 
     <string name="imdb__something_went_wrong">Oops! Something went wrong 🤭</string>
     <string name="imdb__search_no_results">Aw snap! No matching results 🤷</string>
+    <string name="imdb__search_api_limit">Aw snap! API is down. Try again tomorrow! 😅</string>
     <string name="imdb__watch_trailer">Watch trailer</string>
 
     <string name="imdb__movie_hours_minutes_placeholder">%1$d h %2$d min</string>

@@ -10,7 +10,8 @@ import java.util.*
 
 data class SearchResponse(
     @SerializedName("expression") val expression: String,
-    @SerializedName("results") val results: List<SearchResult>
+    @SerializedName("results") val results: List<SearchResult>?,
+    @SerializedName("errorMessage") val errorMessage: String?
 )
 
 data class SearchResult(

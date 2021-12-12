@@ -7,7 +7,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatDelegate
 import pl.marchuck.imdbapiclient.R
 
-class NightModeWrapper constructor(private val activity: Activity) {
+class NightModeWrapper(private val activity: Activity) {
 
     companion object {
         private const val DARK_MODE_ON = "DARK_MODE_ON"

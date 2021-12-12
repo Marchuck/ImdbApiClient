@@ -11,6 +11,7 @@ data class MovieResponse(
     @SerializedName("fullCast") val fullCast: FullCast,
     @SerializedName("imDbRating") val _rating: String?,
     @SerializedName("trailer") val trailer: TrailerResponse?,
+    @SerializedName("errorMessage") val errorMessage: String?,
     @SerializedName("images") val images: ImagesResponse?,
     @SerializedName("keywords") val keywords: String //separatedByComma
 ) {

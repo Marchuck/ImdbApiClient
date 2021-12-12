@@ -12,6 +12,8 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
 import androidx.recyclerview.widget.LinearSnapHelper
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import pl.marchuck.imdbapiclient.R
 import pl.marchuck.imdbapiclient.common.autoCleared
 import pl.marchuck.imdbapiclient.databinding.FragmentMovieDetailBinding
 import pl.marchuck.imdbapiclient.databinding.ItemToolbarBinding
@@ -19,7 +21,6 @@ import pl.marchuck.imdbapiclient.imdb.Actor
 import pl.marchuck.imdbapiclient.imdb.ImageItem
 import pl.marchuck.imdbapiclient.imdb.JobInfo
 import pl.marchuck.imdbapiclient.imdb.TrailerResponse
-import pl.marchuck.imdbapiclient.ui.MainActivity
 import pl.marchuck.imdbapiclient.ui.detail.posters.ActorsAdapter
 import pl.marchuck.imdbapiclient.ui.detail.posters.PosterAdapter
 import kotlin.math.roundToInt
@@ -28,12 +29,7 @@ class MovieDetailFragment : Fragment() {
 
     private var binding by autoCleared<FragmentMovieDetailBinding>()
 
-    private val parentActivity: MainActivity?
-        get() = activity as? MainActivity
-
-    private val viewModel by lazy {
-        MovieDetailViewModel(requireNotNull(parentActivity).imdbClient)
-    }
+    private val viewModel by viewModel<MovieDetailViewModel>()
 
     private val movieDurationFormatter by lazy { MovieDetailFormatter(resources) }
 
@@ -104,7 +100,13 @@ class MovieDetailFragment : Fragment() {
         MovieResponseState.FailedToFetch -> {
             binding.contentRoot.isVisible = false
             binding.progress.isVisible = false
-
+            binding.noResults.isVisible = true
+            binding.noResultsText.setText(R.string.imdb__something_went_wrong)
+        }
+        MovieResponseState.ApiLimit -> {
+            binding.contentRoot.isVisible = false
+            binding.progress.isVisible = false
+            binding.noResultsText.setText(R.string.imdb__search_api_limit)
         }
         MovieResponseState.Loading -> {
             binding.contentRoot.isVisible = false

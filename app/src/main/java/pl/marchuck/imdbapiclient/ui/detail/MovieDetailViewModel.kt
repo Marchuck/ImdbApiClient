@@ -5,6 +5,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import pl.marchuck.imdbapiclient.common.AbstractViewModel
 import pl.marchuck.imdbapiclient.imdb.ImdbClient
+import pl.marchuck.imdbapiclient.imdb.KnownIssues
 import pl.marchuck.imdbapiclient.imdb.MovieResponse
 
 class MovieDetailViewModel constructor(
@@ -21,7 +22,11 @@ class MovieDetailViewModel constructor(
             } catch (c: CancellationException) {
                 MovieResponseState.Loading
             } catch (e: Exception) {
-                MovieResponseState.FailedToFetch
+                if (e is KnownIssues.ApiLimitException) {
+                    MovieResponseState.ApiLimit
+                } else {
+                    MovieResponseState.FailedToFetch
+                }
             }
             pushState { newState }
         }
@@ -33,6 +38,7 @@ sealed class MovieResponseState {
     data class Ready(val response: MovieResponse) : MovieResponseState()
     object Loading : MovieResponseState()
     object FailedToFetch : MovieResponseState()
+    object ApiLimit : MovieResponseState()
 }
 
 sealed class MovieDetailSideEffect {

@@ -10,6 +10,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
 import androidx.recyclerview.widget.RecyclerView
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import pl.marchuck.imdbapiclient.R
 import pl.marchuck.imdbapiclient.common.autoCleared
 import pl.marchuck.imdbapiclient.common.hideKeyboard
@@ -27,13 +28,7 @@ class MovieListFragment : Fragment() {
 
     private val navigation by lazy { (requireActivity() as MainActivity).navigationWrapper }
 
-    private val viewModel: MovieListViewModel by lazy {
-        MovieListViewModel(
-            SearchMoviesInteractorImpl(
-                (requireActivity() as MainActivity).imdbClient
-            )
-        )
-    }
+    private val viewModel: MovieListViewModel by viewModel()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -110,7 +105,8 @@ class MovieListFragment : Fragment() {
 
         binding.noResults.isVisible = state.contentState in listOf(
             ContentState.Error,
-            ContentState.NoResults
+            ContentState.NoResults,
+            ContentState.ApiLimit,
         )
         binding.progressbar.isVisible = state.contentState is ContentState.Loading
         return when (state.contentState) {
@@ -121,6 +117,9 @@ class MovieListFragment : Fragment() {
             ContentState.Loading -> Unit
             ContentState.NoResults -> {
                 binding.noResultsText.setText(R.string.imdb__search_no_results)
+            }
+            ContentState.ApiLimit -> {
+                binding.noResultsText.setText(R.string.imdb__search_api_limit)
             }
         }
     }

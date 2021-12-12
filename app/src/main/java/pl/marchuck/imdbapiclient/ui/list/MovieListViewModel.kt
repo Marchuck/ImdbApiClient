@@ -1,14 +1,10 @@
 package pl.marchuck.imdbapiclient.ui.list
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import pl.marchuck.imdbapiclient.common.AbstractViewModel
+import pl.marchuck.imdbapiclient.imdb.KnownIssues
 import pl.marchuck.imdbapiclient.imdb.SearchResult
 import pl.marchuck.imdbapiclient.ui.list.interactor.SearchMoviesInteractor
 import timber.log.Timber
@@ -43,12 +39,17 @@ class MovieListViewModel constructor(
                         }
                     }
             } catch (e: Exception) {
+                val contentState = if (e is KnownIssues.ApiLimitException) {
+                    ContentState.ApiLimit
+                } else {
+                    ContentState.Error
+                }
                 Timber.w(e, "results fetch error")
 
                 pushState {
                     it.copy(
                         items = emptyList(),
-                        contentState = ContentState.Error
+                        contentState = contentState
                     )
                 }
             }
@@ -63,7 +64,16 @@ class MovieListViewModel constructor(
         }
         is MovieListEvent.QueryChange -> {
             val newQuery = event.newQuery
-            pushState { it.copy(query = newQuery, contentState = ContentState.Loading) }
+            pushState {
+                it.copy(
+                    query = newQuery,
+                    contentState = if (newQuery.length > SearchMoviesInteractor.MIN_QUERY_LENGTH) {
+                        ContentState.Loading
+                    } else {
+                        ContentState.Idle
+                    }
+                )
+            }
             searchMoviesInteractor.setQuery(newQuery)
         }
         MovieListEvent.ShowFilters -> Unit
@@ -95,4 +105,5 @@ sealed class ContentState {
     object Idle : ContentState()
     object NoResults : ContentState()
     object Error : ContentState()
+    object ApiLimit : ContentState()
 }
