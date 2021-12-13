@@ -13,9 +13,12 @@ class NavigationWrapper constructor(
     private val fragmentManager: FragmentManager
         get() = activity.supportFragmentManager
 
-    fun pop(): Boolean = if (fragmentManager.fragments.size > 1) {
+    private val size: Int
+        get() = fragmentManager.fragments.size
+
+    fun pop(): Boolean = if (size > 0) {
         fragmentManager.popBackStackImmediate()
-        fragmentManager.fragments.size > 1
+        size > 0
     } else {
         false
     }
