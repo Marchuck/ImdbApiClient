@@ -6,14 +6,17 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.Exception
+import kotlin.jvm.Throws
 
 
 interface ImdbClient {
 
     suspend fun search(type: SearchResultType, query: String): SearchResponse
 
+    @Throws(KnownIssues.ApiLimitException::class)
     suspend fun getMovieDetail(id: String): MovieResponse
 
+    @Throws(KnownIssues.ApiLimitException::class)
     suspend fun getImages(id: String): ImagesResponse
 }
 

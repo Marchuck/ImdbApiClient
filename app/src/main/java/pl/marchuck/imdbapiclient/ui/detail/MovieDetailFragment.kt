@@ -19,10 +19,9 @@ import pl.marchuck.imdbapiclient.databinding.FragmentMovieDetailBinding
 import pl.marchuck.imdbapiclient.databinding.ItemToolbarBinding
 import pl.marchuck.imdbapiclient.imdb.Actor
 import pl.marchuck.imdbapiclient.imdb.ImageItem
-import pl.marchuck.imdbapiclient.imdb.JobInfo
-import pl.marchuck.imdbapiclient.imdb.TrailerResponse
 import pl.marchuck.imdbapiclient.ui.detail.posters.ActorsAdapter
 import pl.marchuck.imdbapiclient.ui.detail.posters.PosterAdapter
+import pl.marchuck.imdbapiclient.ui.detail.usecase.TrailerUrls
 import kotlin.math.roundToInt
 
 class MovieDetailFragment : Fragment() {
@@ -30,8 +29,6 @@ class MovieDetailFragment : Fragment() {
     private var binding by autoCleared<FragmentMovieDetailBinding>()
 
     private val viewModel by viewModel<MovieDetailViewModel>()
-
-    private val movieDurationFormatter by lazy { MovieDetailFormatter(resources) }
 
     private val actorsAdapter = ActorsAdapter()
     private val postersAdapter = PosterAdapter()
@@ -57,7 +54,8 @@ class MovieDetailFragment : Fragment() {
             configurePostersRecyclerView(totalWidth)
             configureActorsRecyclerView(totalWidth)
             viewModel.viewState.asLiveData().observe(viewLifecycleOwner, ::renderViewState)
-            viewModel.initialize(movieId)
+
+            viewModel.onEvent(MovieDetailEvent.Initialize(movieId))
         }
     }
 
@@ -114,23 +112,19 @@ class MovieDetailFragment : Fragment() {
         }
         is MovieResponseState.Ready -> {
             binding.progress.isVisible = false
-
             binding.contentRoot.isVisible = true
-            renderMetadata(
-                state.response.fullCast.directors,
-                state.response.fullCast.writers,
-                state.response.movieDurationInMinutes,
-                state.response.rating,
-                state.response.plot,
+            binding.ratingLabel.text = HtmlCompat.fromHtml(
+                state.details.metadata,
+                HtmlCompat.FROM_HTML_MODE_LEGACY
             )
-            renderImages(state.response.images?.items.orEmpty())
-            renderCast(state.response.fullCast.actors)
-            renderTrailerIfAny(state.response.trailer)
+            renderImages(state.details.images)
+            renderCast(state.details.actors)
+            renderTrailer(state.details.trailerUrls)
         }
     }
 
-    private fun renderTrailerIfAny(trailer: TrailerResponse?) {
-        if (trailer?.videoUrl == null) {
+    private fun renderTrailer(trailer: TrailerUrls?) {
+        if (trailer == null) {
             binding.trailerLabel.isVisible = false
             binding.playerView.isVisible = false
         } else {
@@ -138,28 +132,10 @@ class MovieDetailFragment : Fragment() {
             binding.playerView.isVisible = true
             binding.playerView.setup(
                 requireActivity(),
-                trailer.videoUrl,
-                trailer.thumbnailUrl,
+                trailer.video,
+                trailer.thumbnail
             )
         }
-    }
-
-    private fun renderMetadata(
-        directors: JobInfo,
-        writers: JobInfo,
-        durationInMinutes: String,
-        rating: String,
-        plot: String
-    ) {
-        val ratingText = if (rating.isNotBlank()) "<b>IMDB rating</b>: ${rating}<br/>" else ""
-
-        val contentTextHtml = "${movieDurationFormatter.formatDuration(durationInMinutes)}<br/>" +
-                ratingText +
-                "${movieDurationFormatter.formatJobInfo(directors.job, directors.items)}<br/>" +
-                "${movieDurationFormatter.formatJobInfo(writers.job, writers.items)}<br/>" +
-                "<b>Plot</b><br/>" + plot
-        binding.ratingLabel.text =
-            HtmlCompat.fromHtml(contentTextHtml, HtmlCompat.FROM_HTML_MODE_LEGACY)
     }
 
     private fun renderImages(images: List<ImageItem>) {

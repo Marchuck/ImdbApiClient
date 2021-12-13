@@ -3,29 +3,23 @@ package pl.marchuck.imdbapiclient.imdb
 import com.google.gson.annotations.SerializedName
 
 data class MovieResponse(
-    @SerializedName("id") val id: String,
-    @SerializedName("title") val title: String,
-    @SerializedName("runtimeMins") val movieDurationInMinutes: String,
-    @SerializedName("plot") val _plot: String?,
+    @SerializedName("id") val id: String?,
+    @SerializedName("title") val title: String?,
+    @SerializedName("plot") val plot: String?,
     @SerializedName("awards") val awards: String?,
-    @SerializedName("fullCast") val fullCast: FullCast,
-    @SerializedName("imDbRating") val _rating: String?,
+    @SerializedName("fullCast") val fullCast: FullCast?,
+    @SerializedName("imDbRating") val rating: String?,
     @SerializedName("trailer") val trailer: TrailerResponse?,
     @SerializedName("errorMessage") val errorMessage: String?,
     @SerializedName("images") val images: ImagesResponse?,
-    @SerializedName("keywords") val keywords: String //separatedByComma
-) {
-    val rating: String
-        get() = _rating.orEmpty()
-    val plot: String
-        get() = _plot.orEmpty()
-}
+    @SerializedName("keywords") val keywords: String? //separatedByComma
+)
 
 data class FullCast(
-    @SerializedName("directors") val directors: JobInfo,
-    @SerializedName("writers") val writers: JobInfo,
-    @SerializedName("actors") val actors: List<Actor>,
-    @SerializedName("genres") val genres: String //separatedByComma
+    @SerializedName("directors") val directors: JobInfo?,
+    @SerializedName("writers") val writers: JobInfo?,
+    @SerializedName("actors") val actors: List<Actor>?,
+    @SerializedName("genres") val genres: String? //separatedByComma
 )
 
 data class JobInfo(
