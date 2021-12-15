@@ -42,7 +42,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
-                android:text="Photos"/>
+                android:text="@string/imdb__label_photos" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/posters_recycler_view"
@@ -60,7 +60,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
-                android:text="Trailer" />
+                android:text="@string/imdb__label_trailer" />
 
             <pl.marchuck.player.PlayerView
                 android:id="@+id/player_view"
@@ -74,7 +74,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
-                android:text="Cast" />
+                android:text="@string/imdb__label_cast" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/actors_recycler_view"

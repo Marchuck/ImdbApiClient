@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import pl.marchuck.imdbapiclient.common.AbstractViewModel
-import pl.marchuck.imdbapiclient.imdb.KnownIssues
+import pl.marchuck.imdbapiclient.imdb.KnownIssue
 import pl.marchuck.imdbapiclient.imdb.SearchResult
 import pl.marchuck.imdbapiclient.ui.list.interactor.SearchMoviesInteractor
 import timber.log.Timber
@@ -19,14 +19,23 @@ class MovieListViewModel constructor(
     )
 ) {
 
-    fun initialize() {
+    fun onEvent(event: MovieListEvent) = when (event) {
+        MovieListEvent.Initialize -> initialize()
+        is MovieListEvent.QueryChange -> onQueryChanged(event.newQuery)
+        is MovieListEvent.EntryClicked -> pushSideEffect(
+            MovieListSideEffect.BrowseMovie(event.entry.id, event.entry.title)
+        )
+        MovieListEvent.ToggleDarkMode -> pushSideEffect(
+            MovieListSideEffect.ToggleDarkMode
+        )
+    }
+
+    private fun initialize() {
         viewModelScope.launch {
             try {
                 searchMoviesInteractor
                     .searchChanges()
                     .collect { results ->
-                        Timber.w("results ${results.size}")
-
                         pushState {
                             it.copy(
                                 items = results,
@@ -39,13 +48,14 @@ class MovieListViewModel constructor(
                         }
                     }
             } catch (e: Exception) {
-                val contentState = if (e is KnownIssues.ApiLimitException) {
+                val contentState = if (e is KnownIssue.ApiLimitException) {
                     ContentState.ApiLimit
                 } else {
+                    if (e !is KnownIssue) {
+                        Timber.e(SearchMoviesException(e))
+                    }
                     ContentState.Error
                 }
-                Timber.w(e, "results fetch error")
-
                 pushState {
                     it.copy(
                         items = emptyList(),
@@ -56,42 +66,31 @@ class MovieListViewModel constructor(
         }
     }
 
-    fun onEvent(event: MovieListEvent) = when (event) {
-        is MovieListEvent.EntryClicked -> {
-            pushSideEffect(
-                MovieListSideEffect.BrowseMovie(event.entry.id, event.entry.title)
+    private fun onQueryChanged(newQuery: String) {
+        pushState {
+            it.copy(
+                query = newQuery,
+                contentState = if (newQuery.length > SearchMoviesInteractor.MIN_QUERY_LENGTH) {
+                    ContentState.Loading
+                } else {
+                    ContentState.Idle
+                }
             )
         }
-        is MovieListEvent.QueryChange -> {
-            val newQuery = event.newQuery
-            pushState {
-                it.copy(
-                    query = newQuery,
-                    contentState = if (newQuery.length > SearchMoviesInteractor.MIN_QUERY_LENGTH) {
-                        ContentState.Loading
-                    } else {
-                        ContentState.Idle
-                    }
-                )
-            }
-            searchMoviesInteractor.setQuery(newQuery)
-        }
-        MovieListEvent.ShowFilters -> Unit
-        MovieListEvent.OpenSettings -> {
-            //todo: display settings
-        }
+        searchMoviesInteractor.setQuery(newQuery)
     }
 }
 
 sealed class MovieListEvent {
     data class QueryChange(val newQuery: String) : MovieListEvent()
     data class EntryClicked(val entry: SearchResult) : MovieListEvent()
-    object ShowFilters : MovieListEvent()
-    object OpenSettings : MovieListEvent()
+    object ToggleDarkMode : MovieListEvent()
+    object Initialize : MovieListEvent()
 }
 
 sealed class MovieListSideEffect {
     data class BrowseMovie(val movieId: String, val movieName: String) : MovieListSideEffect()
+    object ToggleDarkMode : MovieListSideEffect()
 }
 
 data class MovieListViewState(
@@ -100,10 +99,12 @@ data class MovieListViewState(
     val contentState: ContentState = ContentState.Idle
 )
 
-sealed class ContentState {
-    object Loading : ContentState()
-    object Idle : ContentState()
-    object NoResults : ContentState()
-    object Error : ContentState()
-    object ApiLimit : ContentState()
+enum class ContentState {
+    Loading,
+    Idle,
+    NoResults,
+    Error,
+    ApiLimit,
 }
+
+class SearchMoviesException(cause: Exception) : java.lang.Exception(cause)

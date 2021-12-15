@@ -10,6 +10,7 @@ import pl.marchuck.imdbapiclient.imdb.ImdbClientImpl
 import pl.marchuck.imdbapiclient.imdb.ImdbConfig
 import pl.marchuck.imdbapiclient.ui.detail.MovieDetailViewModel
 import pl.marchuck.imdbapiclient.ui.detail.usecase.GetMovieDetailsUseCase
+import pl.marchuck.imdbapiclient.ui.detail.usecase.GetMovieDetailsUseCaseImpl
 import pl.marchuck.imdbapiclient.ui.list.MovieListViewModel
 import pl.marchuck.imdbapiclient.ui.list.interactor.SearchMoviesInteractor
 import pl.marchuck.imdbapiclient.ui.list.interactor.SearchMoviesInteractorImpl
@@ -25,7 +26,7 @@ val appModule = module {
 
     single<SearchMoviesInteractor> { SearchMoviesInteractorImpl(get()) }
 
-    factory { GetMovieDetailsUseCase(get()) }
+    factory<GetMovieDetailsUseCase> { GetMovieDetailsUseCaseImpl(get()) }
 
     viewModel { MovieListViewModel(get()) }
 

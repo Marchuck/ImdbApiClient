@@ -10,8 +10,11 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.asLiveData
 import androidx.recyclerview.widget.RecyclerView
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 import pl.marchuck.imdbapiclient.R
+import pl.marchuck.imdbapiclient.common.NightModeWrapper
 import pl.marchuck.imdbapiclient.common.autoCleared
 import pl.marchuck.imdbapiclient.common.hideKeyboard
 import pl.marchuck.imdbapiclient.databinding.FragmentSearchBinding
@@ -25,6 +28,8 @@ class MovieListFragment : Fragment() {
     private var binding by autoCleared<FragmentSearchBinding>()
 
     private val adapter = SearchAdapter()
+
+    private val nightModeWrapper by inject<NightModeWrapper> { parametersOf(requireActivity()) }
 
     private val navigation by lazy { (requireActivity() as MainActivity).navigationWrapper }
 
@@ -48,6 +53,7 @@ class MovieListFragment : Fragment() {
 
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
+                hideKeyboard()
                 return true
             }
 
@@ -59,7 +65,7 @@ class MovieListFragment : Fragment() {
         viewModel.viewState.asLiveData().observe(viewLifecycleOwner, ::renderViewState)
         viewModel.sideEffects.asLiveData().observe(viewLifecycleOwner, ::handleSideEffect)
 
-        viewModel.initialize()
+        viewModel.onEvent(MovieListEvent.Initialize)
     }
 
     private fun configureRecyclerView(recyclerView: RecyclerView) {
@@ -78,12 +84,10 @@ class MovieListFragment : Fragment() {
 
     private fun configureToolbar(toolbar: ItemToolbarBinding) {
         toolbar.title.text = getString(R.string.app_name)
-        val nightModeWrapper = (requireActivity() as MainActivity).nighModeWrapper
         toolbar.actionIcon.setImageResource(nightModeWrapper.darkModeIcon())
         toolbar.actionIcon.isVisible = true
         toolbar.actionIcon.setOnClickListener {
-            nightModeWrapper.toggleDarkMode()
-            //viewModel.onEvent(MovieListEvent.OpenSettings)
+            viewModel.onEvent(MovieListEvent.ToggleDarkMode)
         }
     }
 
@@ -98,6 +102,9 @@ class MovieListFragment : Fragment() {
             )
         }
         null -> Unit
+        MovieListSideEffect.ToggleDarkMode -> {
+            nightModeWrapper.toggleDarkMode()
+        }
     }
 
     private fun renderViewState(state: MovieListViewState) {
@@ -108,7 +115,8 @@ class MovieListFragment : Fragment() {
             ContentState.NoResults,
             ContentState.ApiLimit,
         )
-        binding.progressbar.isVisible = state.contentState is ContentState.Loading
+        binding.progressbar.isVisible = state.contentState == ContentState.Loading
+
         return when (state.contentState) {
             ContentState.Error -> {
                 binding.noResultsText.setText(R.string.imdb__something_went_wrong)

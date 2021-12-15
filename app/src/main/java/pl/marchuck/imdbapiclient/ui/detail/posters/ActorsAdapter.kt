@@ -11,17 +11,10 @@ import coil.load
 import coil.request.Disposable
 import pl.marchuck.imdbapiclient.databinding.ItemPosterBinding
 import pl.marchuck.imdbapiclient.imdb.Actor
-import pl.marchuck.imdbapiclient.imdb.ImageItem
 
 class ActorsAdapter : ListAdapter<Actor, ActorViewHolder>(ActorsDiffCallback()) {
 
     var customCellWidth: Int? = null
-        set(value) {
-            if (value != null) {
-                field = value
-                notifyDataSetChanged()
-            }
-        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActorViewHolder {
         val inflater = LayoutInflater.from(parent.context)

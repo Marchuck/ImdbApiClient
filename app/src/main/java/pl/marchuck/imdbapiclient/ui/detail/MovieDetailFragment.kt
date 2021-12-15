@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.Px
 import androidx.core.os.bundleOf
 import androidx.core.text.HtmlCompat
 import androidx.core.view.doOnPreDraw
@@ -51,17 +52,20 @@ class MovieDetailFragment : Fragment() {
 
         binding.root.doOnPreDraw {
             val totalWidth = it.measuredWidth
-            configurePostersRecyclerView(totalWidth)
-            configureActorsRecyclerView(totalWidth)
+            val postersCellWidth = (totalWidth.toFloat() / 1.2f).roundToInt()
+            val horizontalPadding = (totalWidth - postersCellWidth) / 2
+            val actorsCellWidth = (totalWidth.toFloat() / 2f).roundToInt()
+
+            configurePostersRecyclerView(horizontalPadding, postersCellWidth)
+            configureActorsRecyclerView(horizontalPadding, actorsCellWidth)
+
             viewModel.viewState.asLiveData().observe(viewLifecycleOwner, ::renderViewState)
 
             viewModel.onEvent(MovieDetailEvent.Initialize(movieId))
         }
     }
 
-    private fun configurePostersRecyclerView(totalWidth: Int) {
-        val cellWidth = (totalWidth.toFloat() / 1.2f).roundToInt()
-        val horizontalPadding = (totalWidth - cellWidth) / 2
+    private fun configurePostersRecyclerView(@Px horizontalPadding: Int, @Px cellWidth: Int) {
         binding.postersRecyclerView.updatePadding(
             left = horizontalPadding,
             right = horizontalPadding
@@ -72,9 +76,7 @@ class MovieDetailFragment : Fragment() {
         LinearSnapHelper().attachToRecyclerView(binding.postersRecyclerView)
     }
 
-    private fun configureActorsRecyclerView(totalWidth: Int) {
-        val cellWidth = (totalWidth.toFloat() / 2.2f).roundToInt()
-        val horizontalPadding = (totalWidth - cellWidth) / 2
+    private fun configureActorsRecyclerView(@Px horizontalPadding: Int, @Px cellWidth: Int) {
         binding.actorsRecyclerView.updatePadding(
             left = horizontalPadding,
             right = horizontalPadding
@@ -139,11 +141,13 @@ class MovieDetailFragment : Fragment() {
     }
 
     private fun renderImages(images: List<ImageItem>) {
+        binding.photosLabel.isVisible = images.isNotEmpty()
         binding.postersRecyclerView.isVisible = images.isNotEmpty()
         postersAdapter.submitList(images)
     }
 
     private fun renderCast(cast: List<Actor>) {
+        binding.actorsLabel.isVisible = cast.isNotEmpty()
         binding.actorsRecyclerView.isVisible = cast.isNotEmpty()
         actorsAdapter.submitList(cast)
     }

@@ -3,8 +3,11 @@ package pl.marchuck.imdbapiclient.imdb
 import android.content.Context
 import com.chuckerteam.chucker.api.ChuckerInterceptor
 import okhttp3.OkHttpClient
+import pl.marchuck.imdbapiclient.ui.detail.usecase.MovieDetailsResult
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
 import java.lang.Exception
 import kotlin.jvm.Throws
 
@@ -13,11 +16,8 @@ interface ImdbClient {
 
     suspend fun search(type: SearchResultType, query: String): SearchResponse
 
-    @Throws(KnownIssues.ApiLimitException::class)
+    @Throws(KnownIssue.ApiLimitException::class)
     suspend fun getMovieDetail(id: String): MovieResponse
-
-    @Throws(KnownIssues.ApiLimitException::class)
-    suspend fun getImages(id: String): ImagesResponse
 }
 
 class ImdbClientImpl constructor(
@@ -43,30 +43,56 @@ class ImdbClientImpl constructor(
     }
 
     override suspend fun search(type: SearchResultType, query: String): SearchResponse {
-        val response = api.search(type.key, config.apiKey, query)
-        if (response.errorMessage.orEmpty().contains("Maximum usage")) {
-            throw KnownIssues.ApiLimitException
+        try {
+            val response = api.search(type.key, config.apiKey, query)
+            if (response.errorMessage.isApiLimit()) {
+                throw KnownIssue.ApiLimitException
+            }
+            return response
+        } catch (e: Throwable) {
+            handleError(e)
         }
-        return response
     }
 
     override suspend fun getMovieDetail(id: String): MovieResponse {
-        val response = api.movieDetail(
-            config.apiKey,
-            id,
-            options = "FullActor,FullCast,Images,Trailer,Ratings"
-        )
-        if (response.errorMessage.orEmpty().contains("Maximum usage")) {
-            throw KnownIssues.ApiLimitException
+        try {
+            val response = api.movieDetail(
+                config.apiKey,
+                id,
+                options = "FullActor,FullCast,Images,Trailer,Ratings"
+            )
+            if (response.errorMessage.isApiLimit()) {
+                throw KnownIssue.ApiLimitException
+            }
+            return response
+        } catch (e: Throwable) {
+            handleError(e)
         }
-        return response
     }
 
-    override suspend fun getImages(id: String): ImagesResponse {
-        return api.images(config.apiKey, id)
+    private fun handleError(e: Throwable): Nothing = when (e) {
+        is HttpException -> {
+            throw KnownIssue.ApiException(e.code())
+        }
+        is IOException -> {
+            throw KnownIssue.NetworkException(e)
+        }
+        else -> throw e
+    }
+
+    private fun String?.isApiLimit(): Boolean {
+        return this.orEmpty().contains("Maximum usage")
     }
 }
 
-sealed class KnownIssues {
-    object ApiLimitException : Exception()
+sealed class KnownIssue(
+    message: String? = null,
+    cause: Throwable? = null
+) : Exception(message, cause) {
+
+    object ApiLimitException : KnownIssue()
+
+    data class ApiException(val code: Int) : KnownIssue("errorCode=$code")
+
+    data class NetworkException(val issue: Throwable) : KnownIssue(cause = issue)
 }

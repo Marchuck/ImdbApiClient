@@ -15,12 +15,6 @@ import pl.marchuck.imdbapiclient.imdb.ImageItem
 class PosterAdapter : ListAdapter<ImageItem, PosterViewHolder>(PosterDiffCallback()) {
 
     var customCellWidth: Int? = null
-        set(value) {
-            if (value != null) {
-                field = value
-                notifyDataSetChanged()
-            }
-        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PosterViewHolder {
         val inflater = LayoutInflater.from(parent.context)

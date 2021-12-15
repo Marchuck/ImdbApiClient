@@ -47,7 +47,6 @@ class SearchViewHolder(private val binding: ItemSearchBinding) :
     fun bind(item: SearchResult) {
         disposable?.dispose()
         disposable = binding.cover.load(item.imageUrl)
-        //todo: boldify with query
         binding.title.text = item.title
         binding.description.text = item.description
     }

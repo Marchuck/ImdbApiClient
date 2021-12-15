@@ -2,12 +2,14 @@ package pl.marchuck.imdbapiclient.ui.detail.usecase
 
 import org.intellij.lang.annotations.Language
 import pl.marchuck.imdbapiclient.imdb.*
-import retrofit2.HttpException
-import java.io.IOException
-import java.lang.Exception
 
-class GetMovieDetailsUseCase(private val clientImpl: ImdbClient) {
-    suspend fun execute(movieId: String): MovieDetailsResult {
+
+interface GetMovieDetailsUseCase {
+    suspend fun execute(movieId: String): MovieDetailsResult
+}
+
+class GetMovieDetailsUseCaseImpl(private val clientImpl: ImdbClient) : GetMovieDetailsUseCase {
+    override suspend fun execute(movieId: String): MovieDetailsResult {
         try {
             val response = clientImpl.getMovieDetail(movieId)
 
@@ -20,14 +22,16 @@ class GetMovieDetailsUseCase(private val clientImpl: ImdbClient) {
             return MovieDetailsResult.Success(details)
         } catch (e: Exception) {
             return when (e) {
-                is HttpException -> {
-                    MovieDetailsResult.Error.ApiIssue(e.code())
-                }
-                is IOException -> {
-                    MovieDetailsResult.Error.NetworkIssue
-                }
-                is KnownIssues.ApiLimitException -> {
-                    MovieDetailsResult.Error.ApiLimit
+                is KnownIssue -> when (e) {
+                    is KnownIssue.ApiException -> {
+                        MovieDetailsResult.Error.ApiIssue(e.code)
+                    }
+                    KnownIssue.ApiLimitException -> {
+                        MovieDetailsResult.Error.ApiLimit
+                    }
+                    is KnownIssue.NetworkException -> {
+                        MovieDetailsResult.Error.NetworkIssue
+                    }
                 }
                 else -> {
                     MovieDetailsResult.Error.InternalIssue(e)
@@ -62,10 +66,10 @@ class GetMovieDetailsUseCase(private val clientImpl: ImdbClient) {
 
     private fun buildTrailer(trailerResponse: TrailerResponse?): TrailerUrls? {
         val url = trailerResponse?.videoUrl
-        if (url == null) {
-            return null
+        return if (url == null) {
+            null
         } else {
-            return TrailerUrls(url, trailerResponse.thumbnailUrl)
+            TrailerUrls(url, trailerResponse.thumbnailUrl)
         }
     }
 
@@ -96,7 +100,7 @@ sealed class MovieDetailsResult {
         object NetworkIssue : Error()
         object ApiLimit : Error()
         data class ApiIssue(val code: Int) : Error()
-        data class InternalIssue(val cause: Throwable) : Error()
+        data class InternalIssue(val cause: Exception) : Error()
     }
 }
 

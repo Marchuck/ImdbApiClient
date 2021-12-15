@@ -6,6 +6,8 @@ import pl.marchuck.imdbapiclient.common.AbstractViewModel
 import pl.marchuck.imdbapiclient.ui.detail.usecase.GetMovieDetailsUseCase
 import pl.marchuck.imdbapiclient.ui.detail.usecase.MovieDetails
 import pl.marchuck.imdbapiclient.ui.detail.usecase.MovieDetailsResult
+import timber.log.Timber
+import java.lang.Exception
 
 class MovieDetailViewModel constructor(
     private val useCase: GetMovieDetailsUseCase
@@ -16,7 +18,7 @@ class MovieDetailViewModel constructor(
         MovieDetailEvent.BackPressed -> pushSideEffect(
             MovieDetailSideEffect.Back
         )
-        is MovieDetailEvent.BrowseTrailer -> pushSideEffect(
+        is MovieDetailEvent.PlayTrailer -> pushSideEffect(
             MovieDetailSideEffect.BrowseTrailer(event.trailerUrl)
         )
         is MovieDetailEvent.Initialize -> initialize(event.movieId)
@@ -26,8 +28,11 @@ class MovieDetailViewModel constructor(
         viewModelScope.launch {
             val newState = when (val result = useCase.execute(movieId)) {
                 MovieDetailsResult.Error.ApiLimit -> MovieResponseState.ApiLimit
+                is MovieDetailsResult.Error.InternalIssue -> {
+                    Timber.e(MovieDetailException(result.cause))
+                    MovieResponseState.FailedToFetch
+                }
                 is MovieDetailsResult.Error.ApiIssue,
-                is MovieDetailsResult.Error.InternalIssue,
                 MovieDetailsResult.Error.NetworkIssue -> MovieResponseState.FailedToFetch
                 is MovieDetailsResult.Success -> {
                     MovieResponseState.Ready(result.details)
@@ -47,7 +52,7 @@ sealed class MovieResponseState {
 
 sealed class MovieDetailEvent {
     data class Initialize(val movieId: String) : MovieDetailEvent()
-    data class BrowseTrailer(val trailerUrl: String) : MovieDetailEvent()
+    data class PlayTrailer(val trailerUrl: String) : MovieDetailEvent()
     object BackPressed : MovieDetailEvent()
 }
 
@@ -55,3 +60,5 @@ sealed class MovieDetailSideEffect {
     data class BrowseTrailer(val trailerUrl: String) : MovieDetailSideEffect()
     object Back : MovieDetailSideEffect()
 }
+
+class MovieDetailException(cause: Exception) : Exception(cause)

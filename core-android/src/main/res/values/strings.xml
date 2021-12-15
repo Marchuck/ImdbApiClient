@@ -7,8 +7,8 @@
     <string name="imdb__search_api_limit">Aw snap! API is down. Try again tomorrow! 😅</string>
     <string name="imdb__watch_trailer">Watch trailer</string>
 
-    <string name="imdb__movie_hours_minutes_placeholder">%1$d h %2$d min</string>
-    <string name="imdb__movie_hours_placeholder">%1$d h</string>
-    <string name="imdb__movie_minutes_placeholder">%1$d min</string>
+    <string name="imdb__label_photos">Photos</string>
+    <string name="imdb__label_cast">Cast</string>
+    <string name="imdb__label_trailer">Trailer</string>
 
 </resources>

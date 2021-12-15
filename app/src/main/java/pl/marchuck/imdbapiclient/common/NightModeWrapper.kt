@@ -54,5 +54,4 @@ class NightModeWrapper(private val activity: Activity) {
             R.drawable.ic_sun
         }
     }
-
 }
